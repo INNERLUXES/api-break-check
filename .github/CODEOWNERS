@@ -1,0 +1,7 @@
+# Every change is reviewed by a maintainer.
+* @innerluxesdev
+
+# The rules, the reference handling and the YAML parser decide every line of the report; changes need extra care.
+/src/compare.js @innerluxesdev
+/src/refs.js @innerluxesdev
+/src/yaml.js @innerluxesdev
