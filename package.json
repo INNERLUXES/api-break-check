@@ -1,0 +1,46 @@
+{
+  "name": "api-break-check",
+  "version": "1.0.0",
+  "description": "Compare two versions of an OpenAPI 3.0 or 3.1 description and list the changes that break existing web and mobile clients: removed paths, new required parameters, type changes, removed response fields and more. Reads files, opens no network connection, no dependencies.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "bin": {
+    "api-break-check": "bin/api-break-check.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "docs",
+    "examples",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "test:coverage": "node --test --experimental-test-coverage \"test/*.test.js\"",
+    "check": "node tools/check.mjs",
+    "example": "node tools/example.mjs"
+  },
+  "keywords": [
+    "openapi",
+    "breaking-changes",
+    "api",
+    "diff",
+    "mobile",
+    "backward-compatibility",
+    "cli"
+  ],
+  "author": "INNERLUXES <info@innerluxes.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/INNERLUXES/api-break-check.git"
+  },
+  "homepage": "https://innerluxes.dev/web-development/full-stack"
+}
