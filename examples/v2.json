@@ -1,0 +1,169 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Orders API",
+    "version": "2.0.0",
+    "description": "A made-up orders API for the api-break-check example."
+  },
+  "servers": [{ "url": "https://api.example.com/v1" }],
+  "security": [{ "bearerAuth": [] }],
+  "paths": {
+    "/orders": {
+      "get": {
+        "operationId": "listOrders",
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["pending", "paid", "shipped"] } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "format": "int32", "maximum": 50 } },
+          { "name": "region", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "sort", "in": "query", "schema": { "type": "string", "enum": ["newest", "oldest"] } }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of orders",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/OrderList" } } }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createOrder",
+        "security": [{ "bearerAuth": [], "deviceKey": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/NewOrder" } } }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/OrderCreated" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/orders/{id}": {
+      "parameters": [
+        { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+      ],
+      "get": {
+        "operationId": "getOrder",
+        "responses": {
+          "200": {
+            "description": "One order",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Order" } } }
+          },
+          "404": { "description": "No such order" }
+        }
+      }
+    },
+    "/orders/{id}/receipt": {
+      "get": {
+        "operationId": "getReceipt",
+        "deprecated": true,
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "The receipt",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Receipt" } }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}/returns": {
+      "post": {
+        "operationId": "createReturn",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "202": { "description": "Return accepted" } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer" },
+      "deviceKey": { "type": "apiKey", "in": "header", "name": "X-Device-Key" }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "The request was not valid",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      }
+    },
+    "schemas": {
+      "OrderStatus": { "type": "string", "enum": ["pending", "paid", "shipped", "cancelled", "refunded"] },
+      "NewOrder": {
+        "type": "object",
+        "required": ["customerId", "items", "channel"],
+        "additionalProperties": false,
+        "properties": {
+          "customerId": { "type": "string" },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/NewOrderItem" } },
+          "note": { "type": "string", "maxLength": 500 },
+          "channel": { "type": "string", "enum": ["web", "ios", "android"] }
+        }
+      },
+      "NewOrderItem": {
+        "type": "object",
+        "required": ["sku", "quantity"],
+        "properties": {
+          "sku": { "type": "string", "maxLength": 32 },
+          "quantity": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "required": ["id", "status", "total", "items"],
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "$ref": "#/components/schemas/OrderStatus" },
+          "total": { "type": "number", "nullable": true },
+          "currency": { "type": "string" },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/OrderItem" } },
+          "trackingUrl": { "type": "string", "format": "uri" },
+          "replacementFor": { "$ref": "#/components/schemas/Order" }
+        }
+      },
+      "OrderItem": {
+        "type": "object",
+        "properties": {
+          "sku": { "type": "string" },
+          "quantity": { "type": "integer", "format": "int64" },
+          "price": { "type": "number" }
+        }
+      },
+      "OrderSummary": {
+        "type": "object",
+        "required": ["id", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "$ref": "#/components/schemas/OrderStatus" },
+          "total": { "type": "number" }
+        }
+      },
+      "OrderCreated": {
+        "type": "object",
+        "required": ["id"],
+        "properties": { "id": { "type": "string" } }
+      },
+      "OrderList": {
+        "type": "object",
+        "properties": {
+          "orders": { "type": "array", "items": { "$ref": "#/components/schemas/OrderSummary" } },
+          "next": { "type": "string" }
+        }
+      },
+      "Receipt": {
+        "type": "object",
+        "properties": { "orderId": { "type": "string" }, "lines": { "type": "array", "items": { "type": "string" } } }
+      },
+      "Error": {
+        "type": "object",
+        "properties": { "code": { "type": "string" }, "message": { "type": "string" } }
+      }
+    }
+  }
+}
